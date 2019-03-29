@@ -107,9 +107,6 @@ int main()
    /* Fill process table with the initial processes                   */
    initialize_process(p_process_list, &process_id, &next_pid);
 
-   /* Sort the process table                                          */
-   sort_processes(p_process_list);
-
    /* Print the the BEFORE process table                              */
    print_before_process_table(p_process_list, process_id, next_pid);
 
