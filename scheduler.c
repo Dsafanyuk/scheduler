@@ -46,6 +46,10 @@
 #define HEADER_ALLOC_ERR       1   /* Header memory alloc error        */
 #define TRAILER_ALLOC_ERR      2   /* Trailer memory alloc error       */
 #define PROCESS_ALLOC_ERR      3   /* Process memory alloc error       */
+#define READY_STATE            'R' /* Ready state indicator            */
+#define BLOCKED_STATE          'B' /* Blocked state indicator          */
+#define RUNNING_STATE          'N' /* Running state indicator          */
+
 
 /**********************************************************************/
 /*                          Program Structures                        */
@@ -112,7 +116,7 @@ int main()
 
    /* Point to the first process and set it as running                 */
    p_process = p_process_list->p_next_process;
-   p_process->state = 'N';
+   p_process->state = RUNNING_STATE;
    print_after_process_table(p_process_list, process_id, next_pid);
 
    /* Loops processing until the highest process is reached           */
@@ -136,17 +140,17 @@ int main()
          create_process(p_process_list, &process_id, &next_pid);
 
       /* Loops to unblock a process                                   */
-      while (p_process->pid != LIST_TRAILER && p_process->state == 'B')
+      while (p_process->pid != LIST_TRAILER && p_process->state == BLOCKED_STATE)
       {
          if (!(rand() % UNBLOCK_PROCESS_CHANCE))
-            p_process->state = 'R';
+            p_process->state = READY_STATE;
          p_process = p_process->p_next_process;
       }
 
       /* Loops until it finds a running process                       */
       while (p_process->pid != LIST_TRAILER)
       {
-         if (p_process->state == 'B' || p_process->state == 'R')
+         if (p_process->state == BLOCKED_STATE || p_process->state == READY_STATE)
             p_process = p_process->p_next_process;
          else
             break;
@@ -162,11 +166,11 @@ int main()
 
          /* Loops until it finds a ready process                      */
          while (p_process->pid != LIST_TRAILER &&
-                p_process->state != 'B' && p_process->state != 'R')
+                p_process->state != BLOCKED_STATE && p_process->state != READY_STATE)
          {
             p_process = p_process->p_next_process;
          }
-         p_process->state = 'N';
+         p_process->state = RUNNING_STATE;
          print_after_process_table(p_process_list, process_id, next_pid);
       }
 
@@ -184,10 +188,10 @@ int main()
          if (p_process->block_time < 6)
          {
             p_process->block_priority *= -1;
-            p_process->state = 'B';
+            p_process->state = BLOCKED_STATE;
          }
          else
-            p_process->state = 'R';
+            p_process->state = READY_STATE;
 
          p_process->quantum_used = 0;
          p_process = p_process_list->p_next_process;
@@ -195,11 +199,11 @@ int main()
 
          /* Loops until it finds a ready process                      */
          while (p_process->pid != LIST_TRAILER &&
-                p_process->state == 'B')
+                p_process->state == BLOCKED_STATE)
          {
             p_process = p_process->p_next_process;
          }
-         p_process->state = 'N';
+         p_process->state = RUNNING_STATE;
          print_after_process_table(p_process_list, process_id, next_pid);
       }
       p_process = p_process_list->p_next_process;
@@ -207,12 +211,12 @@ int main()
       /* Loops througgh the process to set the process information    */
       while (p_process->pid != LIST_TRAILER)
       {
-         if (p_process->state == 'N')
+         if (p_process->state == RUNNING_STATE)
          {
             p_process->cpu_used += 1;
             p_process->quantum_used += 1;
          }
-         if (p_process->state == 'R')
+         if (p_process->state == READY_STATE)
             p_process->wait_time += 1;
          p_process = p_process->p_next_process;
       }
@@ -220,10 +224,10 @@ int main()
       p_process = p_process_list->p_next_process;
 
       /* Loops until the process is blocked to unblock a process      */
-      while (p_process->pid != LIST_TRAILER && p_process->state == 'B')
+      while (p_process->pid != LIST_TRAILER && p_process->state == BLOCKED_STATE)
       {
          if (!(rand() % UNBLOCK_PROCESS_CHANCE))
-            p_process->state = 'R';
+            p_process->state = READY_STATE;
          p_process = p_process->p_next_process;
       }
    }
@@ -354,7 +358,7 @@ void create_process(PROCESS *p_process_list, int *p_process_id,
       p_new_process->pid = *p_next_pid;
       p_new_process->cpu_used = 0;
       p_new_process->max_time = rand() % MAX_TIME + 1;
-      p_new_process->state = 'R';
+      p_new_process->state = READY_STATE;
       p_new_process->block_priority = 0;
       p_new_process->quantum_used = 0;
       if (rand() % 3)
