@@ -1,0 +1,17 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "workbench.colorTheme": "Xcode Default (Dark)",
+    "editor.fontFamily": "Monaco, 'Courier New', monospace",
+    "editor.tabSize": 3,
+   "editor.autoIndent": false,
+   "editor.detectIndentation": false,
+   "C_Cpp.clang_format_fallbackStyle": "none",
+   "C_Cpp.clang_format_style": "none",
+   "C_Cpp.formatting": "Disabled"
+  }
+}
