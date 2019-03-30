@@ -46,6 +46,8 @@
 #define HEADER_ALLOC_ERR       1   /* Header memory alloc error        */
 #define TRAILER_ALLOC_ERR      2   /* Trailer memory alloc error       */
 #define PROCESS_ALLOC_ERR      3   /* Process memory alloc error       */
+#define INITIAL_PROCESS_COUNT  5   /* Initial number of processes      */
+#define QUANTUM                5
 #define READY_STATE            'R' /* Ready state indicator            */
 #define BLOCKED_STATE          'B' /* Blocked state indicator          */
 #define RUNNING_STATE          'N' /* Running state indicator          */
@@ -124,17 +126,6 @@ int main()
    {
       p_process = p_process_list->p_next_process;
 
-      /* Checks to see if the amount of processes is less than 1      */
-      if (process_id <= 1)
-      {
-         /* Loops until number of processes is greater than 1         */
-         while (process_id <= 1)
-         {
-            if (!(rand() % CREATE_PROCESS_CHANCE))
-               create_process(p_process_list, &process_id, &next_pid);
-         }
-      }
-
       /* Create a process                                             */
       if (!(rand() % CREATE_PROCESS_CHANCE))
          create_process(p_process_list, &process_id, &next_pid);
@@ -181,11 +172,10 @@ int main()
                                     next_pid);
          if (p_process->block_priority < 0)
             p_process->block_priority *= -1;
-         p_process->block_priority = ((int)(((float)(p_process->block_priority +
-                                                     p_process->quantum_used)) /
-                                                2.0f +
-                                            0.5f));
-         if (p_process->block_time < 6)
+         p_process->block_priority = ((int)(((float)
+                                       (p_process->block_priority +
+                                        p_process->quantum_used)) * 0.5f + 0.5f));
+         if (p_process->block_time < QUANTUM + 1)
          {
             p_process->block_priority *= -1;
             p_process->state = BLOCKED_STATE;
@@ -208,7 +198,7 @@ int main()
       }
       p_process = p_process_list->p_next_process;
 
-      /* Loops througgh the process to set the process information    */
+      /* Loops through the process to set the process information    */
       while (p_process->pid != LIST_TRAILER)
       {
          if (p_process->state == RUNNING_STATE)
@@ -224,7 +214,8 @@ int main()
       p_process = p_process_list->p_next_process;
 
       /* Loops until the process is blocked to unblock a process      */
-      while (p_process->pid != LIST_TRAILER && p_process->state == BLOCKED_STATE)
+      while (p_process->pid   != LIST_TRAILER && 
+             p_process->state == BLOCKED_STATE)
       {
          if (!(rand() % UNBLOCK_PROCESS_CHANCE))
             p_process->state = READY_STATE;
@@ -238,22 +229,20 @@ int main()
 /*                  Initialize the Beginning Processes                */
 /**********************************************************************/
 void initialize_process(PROCESS *p_process_list, int *p_process_id,
-                        int *p_next_pid)
+                                                        int *p_next_pid)
 {
-   int count_process;
+   int count_process;              /* Number of processes initialized */
 
-   for (count_process = 1; count_process <= 5; count_process++)
-   {
+   for (count_process = 1; count_process <= INITIAL_PROCESS_COUNT; 
+                                                        count_process++)
       create_process(p_process_list, p_process_id, p_next_pid);
-   }
    return;
 }
-
 /**********************************************************************/
 /*                   Sort And Print BEFORE Process Table              */
 /**********************************************************************/
 void print_before_process_table(PROCESS *p_process_list, int process_id,
-                                int next_pid)
+                                                         int next_pid)
 {
    sort_processes(p_process_list);
    printf("\nBEFORE SCHEDULING CPU:  ");
@@ -270,7 +259,7 @@ void print_before_process_table(PROCESS *p_process_list, int process_id,
 /*                  Sort And Print AFTER Process Table                */
 /**********************************************************************/
 void print_after_process_table(PROCESS *p_process_list, int process_id,
-                               int next_pid)
+                                                           int next_pid)
 {
    sort_processes(p_process_list);
    printf("\nAFTER SCHEDULING CPU:  ");
@@ -284,7 +273,7 @@ void print_after_process_table(PROCESS *p_process_list, int process_id,
 }
 
 /**********************************************************************/
-/*                     Print Process Information                      */
+/*                      Print the Process Table                       */
 /**********************************************************************/
 void print_processes(PROCESS *p_process_list)
 {
@@ -310,7 +299,7 @@ void print_processes(PROCESS *p_process_list)
 /**********************************************************************/
 PROCESS *create_process_table()
 {
-   PROCESS *p_new_list; /* Points to the newly created list           */
+   PROCESS *p_new_list; /* Points to the newly created process table  */
 
    if ((p_new_list = (PROCESS *)malloc(sizeof(PROCESS))) == NULL)
    {
@@ -339,7 +328,7 @@ PROCESS *create_process_table()
 /*                 Create a Process and Initialize it                 */
 /**********************************************************************/
 void create_process(PROCESS *p_process_list, int *p_process_id,
-                    int *p_next_pid)
+                                                        int *p_next_pid)
 {
    PROCESS *p_new_process; /* Points to the newly created process     */
 
@@ -347,39 +336,39 @@ void create_process(PROCESS *p_process_list, int *p_process_id,
    {
       if ((p_new_process = (PROCESS *)malloc(sizeof(PROCESS))) == NULL)
       {
-         printf("\nError #%d occurred in create_process_table.",
+         printf("\nError #%d occurred in create_process.",
                 PROCESS_ALLOC_ERR);
          printf("\nCannot allocate memory for the process.");
          printf("\nThe program is aborting.");
          exit(PROCESS_ALLOC_ERR);
       }
-      p_new_process->p_next_process = p_process_list->p_next_process;
+      p_new_process->p_next_process  = p_process_list->p_next_process;
       p_process_list->p_next_process = p_new_process;
-      p_new_process->pid = *p_next_pid;
-      p_new_process->cpu_used = 0;
-      p_new_process->max_time = rand() % MAX_TIME + 1;
-      p_new_process->state = READY_STATE;
-      p_new_process->block_priority = 0;
-      p_new_process->quantum_used = 0;
+      p_new_process->pid             = *p_next_pid;
+      p_new_process->cpu_used        = 0;
+      p_new_process->max_time        = rand() % MAX_TIME + 1;
+      p_new_process->state           = READY_STATE;
+      p_new_process->block_priority  = 0;
+      p_new_process->quantum_used    = 0;
       if (rand() % 3)
-         p_new_process->block_time = rand() % 5 + 1;
+         p_new_process->block_time   = rand() % QUANTUM + 1;
       else
-         p_new_process->block_time = 6;
-      p_new_process->wait_time = 0;
-      (*p_process_id)++;
-      (*p_next_pid)++;
+         p_new_process->block_time   = 6;
+      p_new_process->wait_time       = 0;
+      *p_process_id+=1;
+      *p_next_pid  +=1;
    }
    return;
 }
 
 /**********************************************************************/
-/*          Sort the Process Table and Sort Process Priority          */
+/*                 Sort the Process Table and Priority                */
 /**********************************************************************/
 void sort_processes(PROCESS *p_process_list)
 {
    PROCESS *p_current = p_process_list, /* Points to each process     */
-       *p_temp;                         /* Holds a process            */
-   int process_num;                     /* The amount of processes    */
+                       *p_temp;         /* Holds a process            */
+   int process_num;                     /* The number of processes    */
 
    for (process_num = 1; process_num <= 6 - 1; process_num++)
    {
@@ -432,13 +421,13 @@ void sort_processes(PROCESS *p_process_list)
 /*                Terminate the Process When Finished                 */
 /**********************************************************************/
 void delete_process(PROCESS *p_process_list, int *p_process_id,
-                    int *p_next_pid)
+                                                        int *p_next_pid)
 {
-   PROCESS *p_current = p_process_list, /* Points to current process */
-       *p_previous = p_process_list;    /* Points to previous process*/
+   PROCESS *p_current  = p_process_list, /* Points to current process */
+           *p_previous = p_process_list; /* Points to previous process*/
 
-   while (p_current = p_current->p_next_process, p_current->pid !=
-                                                     LIST_TRAILER)
+   while (p_current = p_current->p_next_process, 
+          p_current->pid != LIST_TRAILER)
    {
       if (p_current->cpu_used == p_current->max_time)
       {
