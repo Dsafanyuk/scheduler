@@ -12,7 +12,7 @@
 /*                                                                    */
 /* I pledge  the C language  statements in  this  program are  my own */
 /* original  work,  and none  of the  C language  statements in  this */
-/* program were copied  from any one else,  unless I was specifically  */
+/* program were copied  from any one else,  unless I was specifically */
 /* authorized to do so by my CS326 instructor.                        */
 /*                                                                    */
 /*                                                                    */
@@ -27,7 +27,7 @@
 /* are continually arriving, existing processes are vying for the     */
 /* CPU, processes are using their given quantum (CPU bound) or        */
 /* blocking because of I/O operations, and processes are terminating  */
-/* when their work is finished.                                        */
+/* when their work is finished.                                       */
 /*                                                                    */
 /**********************************************************************/
 
@@ -37,20 +37,20 @@
 /**********************************************************************/
 /*                          Symbolic Constants                        */
 /**********************************************************************/
-#define LIST_TRAILER           100 /* Trailer of the list              */
-#define LIST_HEADER            0   /* Header of the list               */
-#define MAX_TIME               18  /* Max processing time              */
-#define CREATE_PROCESS_CHANCE  5   /* Process creation chance          */
-#define UNBLOCK_PROCESS_CHANCE 20  /* Chance to block a process        */
-#define MAX_PROCESSES          100 /* Max processes in process table   */
-#define HEADER_ALLOC_ERR       1   /* Header memory alloc error        */
-#define TRAILER_ALLOC_ERR      2   /* Trailer memory alloc error       */
-#define PROCESS_ALLOC_ERR      3   /* Process memory alloc error       */
-#define INITIAL_PROCESS_COUNT  5   /* Initial number of processes      */
+#define LIST_TRAILER           100 /* Trailer of the list             */
+#define LIST_HEADER            0   /* Header of the list              */
+#define MAX_TIME               18  /* Max processing time             */
+#define CREATE_PROCESS_CHANCE  5   /* Process creation chance         */
+#define UNBLOCK_PROCESS_CHANCE 20  /* Chance to block a process       */
+#define MAX_PROCESSES          100 /* Max processes in process table  */
+#define HEADER_ALLOC_ERR       1   /* Header memory alloc error       */
+#define TRAILER_ALLOC_ERR      2   /* Trailer memory alloc error      */
+#define PROCESS_ALLOC_ERR      3   /* Process memory alloc error      */
+#define INITIAL_PROCESS_COUNT  5   /* Initial number of processes     */
 #define QUANTUM                5
-#define READY_STATE            'R' /* Ready state indicator            */
-#define BLOCKED_STATE          'B' /* Blocked state indicator          */
-#define RUNNING_STATE          'N' /* Running state indicator          */
+#define READY_STATE            'R' /* Ready state indicator           */
+#define BLOCKED_STATE          'B' /* Blocked state indicator         */
+#define RUNNING_STATE          'N' /* Running state indicator         */
 
 
 /**********************************************************************/
@@ -131,7 +131,8 @@ int main()
          create_process(p_process_list, &process_id, &next_pid);
 
       /* Loops to unblock a process                                   */
-      while (p_process->pid != LIST_TRAILER && p_process->state == BLOCKED_STATE)
+      while (p_process->pid != LIST_TRAILER && 
+             p_process->state == BLOCKED_STATE)
       {
          if (!(rand() % UNBLOCK_PROCESS_CHANCE))
             p_process->state = READY_STATE;
@@ -141,7 +142,8 @@ int main()
       /* Loops until it finds a running process                       */
       while (p_process->pid != LIST_TRAILER)
       {
-         if (p_process->state == BLOCKED_STATE || p_process->state == READY_STATE)
+         if (p_process->state == BLOCKED_STATE || 
+             p_process->state == READY_STATE)
             p_process = p_process->p_next_process;
          else
             break;
@@ -157,7 +159,8 @@ int main()
 
          /* Loops until it finds a ready process                      */
          while (p_process->pid != LIST_TRAILER &&
-                p_process->state != BLOCKED_STATE && p_process->state != READY_STATE)
+                p_process->state != BLOCKED_STATE && 
+                p_process->state != READY_STATE)
          {
             p_process = p_process->p_next_process;
          }
@@ -311,7 +314,8 @@ PROCESS *create_process_table()
    }
    p_new_list->pid = LIST_HEADER;
 
-   if ((p_new_list->p_next_process = (PROCESS *)malloc(sizeof(PROCESS))) == NULL)
+   if ((p_new_list->p_next_process = (PROCESS *)malloc(sizeof(PROCESS))) 
+                                                               == NULL)
    {
       printf("\nError #%d occurred in create_process_table.",
              TRAILER_ALLOC_ERR);
@@ -405,7 +409,7 @@ void sort_processes(PROCESS *p_process_list)
                {
                   p_temp = p_current->p_next_process->p_next_process;
                   p_current->p_next_process->p_next_process =
-                      p_current->p_next_process->p_next_process->p_next_process;
+                     p_current->p_next_process->p_next_process->p_next_process;
                   p_temp->p_next_process = p_current->p_next_process;
                   p_current->p_next_process = p_temp;
                }
@@ -426,7 +430,7 @@ void delete_process(PROCESS *p_process_list, int *p_process_id,
    PROCESS *p_current  = p_process_list, /* Points to current process */
            *p_previous = p_process_list; /* Points to previous process*/
 
-   while (p_current = p_current->p_next_process, 
+   while (p_current      = p_current->p_next_process, 
           p_current->pid != LIST_TRAILER)
    {
       if (p_current->cpu_used == p_current->max_time)
